@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cleveland Dynasty Reference</title>
+  <meta name="description" content="Stats, box scores, awards and highlights from the Cleveland Indians MLB The Show 26 franchise dynasty.">
+  <link rel="icon" href="https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-in">
+      <button id="nav-toggle" class="nav-toggle" aria-label="Menu">&#9776;</button>
+      <a class="brand" href="#/">
+        <img src="https://www.mlbstatic.com/team-logos/team-cap-on-dark/114.svg" alt="" width="34" height="34">
+        <span><b>Cleveland Dynasty</b><small>Reference</small></span>
+      </a>
+      <div class="search">
+        <input id="search" type="search" placeholder="Search players, seasons, highlights…  ( / )" autocomplete="off" aria-label="Search">
+        <div id="search-results" class="search-results" hidden></div>
+      </div>
+      <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode" title="Light / dark">&#9681;</button>
+    </div>
+    <nav class="mainnav">
+      <div class="wrap">
+        <a href="#/" data-nav="home">Home</a>
+        <a href="#/seasons" data-nav="seasons">Seasons</a>
+        <a href="#/players" data-nav="players">Players</a>
+        <a href="#/postseason" data-nav="postseason">Postseason</a>
+        <a href="#/leaders/career" data-nav="leaders">Leaders</a>
+        <a href="#/awards" data-nav="awards">Awards</a>
+        <a href="#/allstars" data-nav="allstars">All-Stars</a>
+        <a href="#/hof" data-nav="hof">Hall of Fame</a>
+        <a href="#/highlights" data-nav="highlights">Highlights</a>
+        <a href="#/draft" data-nav="draft">Draft</a>
+        <a href="#/staff" data-nav="staff">Staff</a>
+        <a href="#/ninety-nines" data-nav="ninety-nines">99 Club</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="app" class="wrap"></main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p><b>Cleveland Dynasty Reference</b> · An MLB The Show 26 franchise record, read live from the dynasty Google Sheet.</p>
+      <p class="muted">Data loaded <span id="loaded-at">—</span> · <a href="#" data-refresh>Refresh data</a> · Logos and headshots © MLB, used for a personal fan record.</p>
+    </div>
+  </footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
