@@ -1,5 +1,6 @@
 import { CONFIG, LEADER_CATEGORIES } from '../config.js';
 import { N, batTotals, pitTotals, roundIdx } from '../data.js';
+import { playerMoves } from './moves.js';
 import { esc, table, section, pageNav, empty, rate, dec, int, logo, team, isCLE, playerLink, headshot, headshotUrl, mediaCard, ordinal, pill } from '../ui.js';
 import { yearCol, posCol, BAT_STATS, PIT_STATS, batTotalRow, pitTotalRow, GAME_BAT, GAME_PIT } from '../cols.js';
 
@@ -93,6 +94,8 @@ export function playerPage(db, id) {
   const tags = db.tagsByPlayer[id] || [];
   const hlIds = [...new Set(tags.map(t => t.highlight_id))];
   if (hlIds.length) add('highlights', 'Highlights', `<div class="hl-grid">${hlIds.map(h => db.highlights[h]).filter(Boolean).map(h => mediaCard(db, h)).join('')}</div>`);
+
+  add('moves', 'Transactions & Opening Day', playerMoves(db, id));
 
   if (hof) {
     const line = hof.ip ? `${hof.w}-${hof.l}, ${hof.era} ERA, ${int(hof.so)} SO, ${hof.ip} IP${N(hof.sv) ? `, ${hof.sv} SV` : ''}` : `${hof.avg} BA, ${int(hof.h)} H, ${int(hof.hr)} HR, ${int(hof.rbi)} RBI${hof.sb ? `, ${hof.sb} SB` : ''}`;

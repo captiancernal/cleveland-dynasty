@@ -1,6 +1,6 @@
 import { CONFIG } from '../config.js';
 import { N } from '../data.js';
-import { esc, section, empty, mediaCard, driveThumb, videoPlayer, playerLink, headshot, roundShort, logo } from '../ui.js';
+import { esc, section, empty, mediaCard, mediaSrc, videoPlayer, playerLink, headshot, roundShort, logo } from '../ui.js';
 
 export function highlightsIndex(db) {
   const hs = Object.values(db.highlights).sort((a, b) => N(b.year) - N(a.year) || b.highlight_id.localeCompare(a.highlight_id));
@@ -24,9 +24,9 @@ export function highlightPage(db, hid) {
   const vids = videos.map(v => `<figure class="video-fig">${videoPlayer(v.drive_file_id, v.caption)}<figcaption>${esc(v.caption)} <a href="${esc(v.url)}" target="_blank" rel="noopener">Open in Drive</a></figcaption></figure>`).join('');
   const gal = photos.map((p, i) => {
     const pt = tags.filter(t => t.media_id === p.media_id);
-    return `<figure class="photo"><button class="ph-btn" data-lightbox="${i}" aria-label="Open photo"><img loading="lazy" src="${driveThumb(p.drive_file_id, 720)}" alt="${esc(p.caption)}"></button><figcaption>${esc(p.caption)}${pt.length ? `<div class="tags">${tagChips(pt)}</div>` : ''}</figcaption></figure>`;
+    return `<figure class="photo"><button class="ph-btn" data-lightbox="${i}" aria-label="Open photo"><img loading="lazy" src="${mediaSrc(p, 720)}" alt="${esc(p.caption)}"></button><figcaption>${esc(p.caption)}${pt.length ? `<div class="tags">${tagChips(pt)}</div>` : ''}</figcaption></figure>`;
   }).join('');
-  const lbData = esc(JSON.stringify(photos.map(p => ({ src: driveThumb(p.drive_file_id, 2000), cap: p.caption }))));
+  const lbData = esc(JSON.stringify(photos.map(p => ({ src: mediaSrc(p, 2000), cap: p.caption }))));
   return `<div class="crumbs"><a href="#/highlights">Highlights</a></div>
     <h1>${esc(h.title)}</h1><p class="meta">${ctx}</p>
     ${whole.length ? `<div class="tags big">${tagChips(whole)}</div>` : ''}

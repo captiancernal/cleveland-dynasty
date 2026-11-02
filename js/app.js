@@ -6,6 +6,7 @@ import { seasonsIndex, seasonPage } from './pages/season.js';
 import { playersIndex, bindPlayersIndex, playerPage } from './pages/player.js';
 import { postseasonIndex, postseasonYear, seriesPage, gamePage } from './pages/postseason.js';
 import { franchiseLeaders, leagueLeaders, awardsPage, allStarsPage, hofPage, draftPage, staffPage, ninetyPage } from './pages/history.js';
+import { openingDayPage, transactionsPage } from './pages/moves.js';
 import { highlightsIndex, highlightPage, bindLightbox } from './pages/media.js';
 
 const app = document.getElementById('app');
@@ -29,6 +30,8 @@ const routes = [
   [/^draft(?:\/(\d{4}))?$/, y => [draftPage(db, y), 'Draft']],
   [/^staff$/, () => [staffPage(db), 'Managers & Staff']],
   [/^ninety-nines$/, () => [ninetyPage(db), '99 Club']],
+  [/^transactions$/, () => [transactionsPage(db), 'Transactions']],
+  [/^opening-day(?:\/(\d{4}))?$/, y => [openingDayPage(db, y), 'Opening Day']],
   [/^highlights$/, () => [highlightsIndex(db), 'Highlights']],
   [/^highlight\/(H\d+)$/, id => [highlightPage(db, id), db.highlights[id]?.title || 'Highlight']],
 ];
@@ -60,7 +63,7 @@ function render() {
 
 function markNav(path) {
   const top = path.split('/')[0] || 'home';
-  const map = { season: 'seasons', player: 'players', series: 'postseason', game: 'postseason', highlight: 'highlights', 'league-leaders': 'leaders' };
+  const map = { season: 'seasons', player: 'players', series: 'postseason', game: 'postseason', highlight: 'highlights', 'league-leaders': 'leaders', 'opening-day': 'transactions' };
   const key = map[top] || top;
   document.querySelectorAll('.mainnav a').forEach(a => a.classList.toggle('on', a.dataset.nav === key));
 }

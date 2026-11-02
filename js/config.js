@@ -15,7 +15,7 @@ export const CONFIG = {
     postseason_game_batting: 25, postseason_game_pitching: 26,
     awards: 5, playoffs: 6, league_leaders: 18, all_stars: 11, postseason: 15,
     hall_of_fame: 16, highlights: 21, highlight_media: 23, highlight_players: 22,
-    ninety_nines: 7, season_wrapup: 8,
+    ninety_nines: 7, season_wrapup: 8, transactions: 27, opening_day: 28,
   },
 };
 

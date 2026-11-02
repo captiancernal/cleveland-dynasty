@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import { N, batTotals, pitTotals } from '../data.js';
+import { openingDayCard, tradeCard, tradesForYear } from './moves.js';
 import { esc, section, table, rate, dec, int, money, ordinal, logo, isCLE, playerLink, headshot, mediaCard, pennant, videoPlayer, nameLink } from '../ui.js';
 
 export function homePage(db) {
@@ -43,7 +44,10 @@ export function homePage(db) {
   </div>`;
 
   // ---------- featured highlight ----------
-  const hls = Object.values(db.highlights).sort((a, b) => N(b.year) - N(a.year) || (a.phase === 'postseason' ? -1 : 1));
+  // Newest year first; within a year postseason moments, then game moments over trades, then newest.
+  const isTrade = h => Object.values(db.trades).some(rs => rs[0].highlight_id === h.highlight_id);
+  const rank = h => (h.phase === 'postseason' ? 0 : isTrade(h) ? 2 : 1);
+  const hls = Object.values(db.highlights).sort((a, b) => N(b.year) - N(a.year) || rank(a) - rank(b) || b.highlight_id.localeCompare(a.highlight_id));
   const feat = hls[0];
   const featVid = feat ? (db.mediaByHighlight[feat.highlight_id] || []).find(m => m.media_type === 'video') : null;
   const featured = feat ? `<div class="card featured">
@@ -53,6 +57,12 @@ export function homePage(db) {
     <div class="hl-strip">${hls.slice(1, 4).map(h => mediaCard(db, h)).join('')}</div>
     <p><a href="#/highlights">All highlights &rarr;</a></p>
   </div>` : '';
+
+  // ---------- Opening Day + latest trades ----------
+  const odYear = Math.max(0, ...Object.keys(db.openingDay).map(Number));
+  const od = odYear ? `<div class="card"><h3>Opening Day ${odYear} <a class="more" href="#/opening-day/${odYear}">Full card &rarr;</a></h3>${openingDayCard(db, odYear, { compact: true })}</div>` : '';
+  const trYear = Math.max(0, ...Object.values(db.trades).map(rs => N(rs[0].year)));
+  const trades = trYear ? `<div class="card"><h3>${trYear} Trades <a class="more" href="#/transactions">All transactions &rarr;</a></h3><div class="trade-grid">${tradesForYear(db, trYear).reverse().map(t => tradeCard(db, t)).join('')}</div></div>` : '';
 
   // ---------- franchise leaders ----------
   const bats = Object.entries(db.batByPlayer).map(([id, rs]) => ({ id, t: batTotals(rs) }));
@@ -97,7 +107,7 @@ export function homePage(db) {
 
   return `${hero}
     <div class="home-grid">
-      <div class="col-main">${featured}${recap}${section('yby', 'Year by Year', yby, '<a class="more" href="#/seasons">Franchise history &rarr;</a>')}</div>
-      <div class="col-side">${latest}${leaders}${honors}${hofCard}</div>
+      <div class="col-main">${featured}${trades}${recap}${section('yby', 'Year by Year', yby, '<a class="more" href="#/seasons">Franchise history &rarr;</a>')}</div>
+      <div class="col-side">${latest}${od}${leaders}${honors}${hofCard}</div>
     </div>`;
 }

@@ -3,6 +3,7 @@ import { N, batTotals, pitTotals, roundIdx } from '../data.js';
 import { esc, table, section, pageNav, empty, rate, dec, int, money, ordinal, team, logo, isCLE, playerLink, headshot, nameLink, mediaCard, roundShort, pennant } from '../ui.js';
 import { yearCol, playerCol, posCol, BAT_STATS, PIT_STATS, batTotalRow, pitTotalRow } from '../cols.js';
 import { bracket } from './postseason.js';
+import { openingDayCard, tradeCard, tradesForYear } from './moves.js';
 
 export function seasonsIndex(db) {
   const rows = db.seasons.filter(y => db.summaryByYear[y] || db.T.staff.some(s => N(s.year) === y)).map(y => {
@@ -69,6 +70,10 @@ export function seasonPage(db, yearStr) {
 
   const hl = T.highlights.filter(h => N(h.year) === year);
   add('highlights', 'Highlights', hl.length ? `<div class="hl-grid">${hl.map(h => mediaCard(db, h)).join('')}</div>` : '');
+
+  add('opening-day', 'Opening Day', openingDayCard(db, year));
+  const tr = tradesForYear(db, year);
+  add('transactions', 'Trades', tr.length ? `<div class="trade-grid">${tr.map(t => tradeCard(db, t)).join('')}</div>` : '');
 
   // standings
   const stand = atYear('standings').sort((a, b) => N(a.division_finish) - N(b.division_finish));

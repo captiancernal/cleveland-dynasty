@@ -70,6 +70,9 @@ export const roundIdx = r => { const i = ROUND_ORDER.indexOf(r); return i < 0 ? 
 
 const groupBy = (arr, fn) => arr.reduce((m, x) => { const k = fn(x); (m[k] ||= []).push(x); return m; }, {});
 
+// Sheets may export dates as 4/1/2029; normalise to 2029-04-01.
+const normDate = d => { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(d || ''); return m ? `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` : d; };
+
 function buildDB(raw, loadedAt) {
   const T = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, toObjects(v)]));
   const players = {};
@@ -81,7 +84,7 @@ function buildDB(raw, loadedAt) {
   for (const t of Object.values(T)) for (const r of t) if (r.player_id) ensure(r.player_id, r.player);
 
   const years = new Set();
-  for (const k of ['season_summary', 'standings', 'batting', 'pitching', 'staff', 'awards', 'all_stars', 'postseason', 'hall_of_fame', 'draft', 'highlights', 'season_wrapup']) {
+  for (const k of ['season_summary', 'standings', 'batting', 'pitching', 'staff', 'awards', 'all_stars', 'postseason', 'hall_of_fame', 'draft', 'highlights', 'season_wrapup', 'transactions', 'opening_day']) {
     for (const r of T[k]) if (N(r.year)) years.add(N(r.year));
   }
   const seasons = [...years].sort((a, b) => a - b);
@@ -108,7 +111,12 @@ function buildDB(raw, loadedAt) {
     media: Object.fromEntries(T.highlight_media.map(m => [m.media_id, m])),
     tagsByHighlight: by('highlight_players', 'highlight_id'),
     tagsByPlayer: by('highlight_players', 'player_id'),
+    trades: by('transactions', 'transaction_id'),
+    txByPlayer: by('transactions', 'player_id'),
+    openingDay: by('opening_day', 'year'),
+    odByPlayer: by('opening_day', 'player_id'),
   };
+  for (const r of T.opening_day) r.date = normDate(r.date);
   db.games = [...T.postseason_games].sort((a, b) => a.date.localeCompare(b.date));
   db.gameKey = g => `${g.year}/${encodeURIComponent(g.round)}/${g.game}`;
   db.championYears = T.season_summary.filter(r => /world series winner/i.test(r.playoff_result)).map(r => N(r.year));

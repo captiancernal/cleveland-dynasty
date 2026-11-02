@@ -59,6 +59,8 @@ export const team = (name, size = 18) => name ? `<span class="team">${logo(name,
 export const teamAbbr = name => TEAMS[name]?.abbr || name;
 
 export const driveThumb = (id, w = 640) => `https://lh3.googleusercontent.com/d/${id}=w${w}`;
+// Photo source: Drive file id when present, otherwise the direct url (e.g. hosted with the site).
+export const mediaSrc = (m, w = 640) => (m.drive_file_id ? driveThumb(m.drive_file_id, w) : m.url);
 export const driveVideo = id => `https://drive.google.com/file/d/${id}/preview`;
 // Video poster that swaps in the Drive player on click (fast pages, no black boxes).
 export const videoPlayer = (id, title = '') => `<div class="video-frame"><button class="vposter" data-video="${esc(id)}" aria-label="Play ${esc(title)}"><img loading="lazy" src="${driveThumb(id, 1280)}" alt=""><span class="play" aria-hidden="true"></span></button></div>`;
@@ -124,9 +126,9 @@ export function enableSorting(root) {
 // ---------- media ----------
 export function mediaCard(db, h, { big = false } = {}) {
   const cover = db.media[h.cover_media_id] || (db.mediaByHighlight[h.highlight_id] || [])[0];
-  const img = cover ? `<img loading="lazy" src="${driveThumb(cover.drive_file_id, big ? 960 : 480)}" alt="">` : '';
+  const img = cover ? `<img loading="lazy" src="${mediaSrc(cover, big ? 960 : 480)}" alt="">` : '';
   const isVid = cover?.media_type === 'video';
-  const sub = [h.year, h.round ? `${roundShort(h.round)}${h.game ? ` G${h.game}` : ''}` : (h.phase === 'regular_season' ? 'Regular season' : ''), h.opponent ? `vs ${h.opponent}` : ''].filter(Boolean).join(' · ');
+  const sub = [h.year, h.round ? `${roundShort(h.round)}${h.game ? ` G${h.game}` : ''}` : ({ regular_season: 'Regular season', spring_training: 'Spring training', offseason: 'Offseason' }[h.phase] || ''), h.opponent ? `vs ${h.opponent}` : ''].filter(Boolean).join(' · ');
   return `<a class="hl-card${big ? ' big' : ''}" href="#/highlight/${h.highlight_id}"><div class="hl-thumb">${img}${isVid ? '<span class="play" aria-hidden="true"></span>' : ''}</div><div class="hl-meta"><strong>${esc(h.title)}</strong><span>${esc(sub)}</span></div></a>`;
 }
 
