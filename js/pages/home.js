@@ -1,6 +1,6 @@
 import { CONFIG } from '../config.js';
 import { N, batTotals, pitTotals } from '../data.js';
-import { openingDayCard, tradeCard, tradesForYear } from './moves.js';
+import { openingDayCard, tradeCard, tradesForYear, GAME_TYPE } from './moves.js';
 import { esc, section, table, rate, dec, int, money, ordinal, logo, isCLE, playerLink, headshot, mediaCard, pennant, videoPlayer, nameLink } from '../ui.js';
 
 export function homePage(db) {
@@ -60,7 +60,7 @@ export function homePage(db) {
 
   // ---------- Opening Day + latest trades ----------
   const odYear = Math.max(0, ...Object.keys(db.openingDay).map(Number));
-  const od = odYear ? `<div class="card"><h3>Opening Day ${odYear} <a class="more" href="#/opening-day/${odYear}">Full card &rarr;</a></h3>${openingDayCard(db, odYear, { compact: true })}</div>` : '';
+  const od = odYear ? `<div class="card"><h3>Opening Day ${odYear} <a class="more" href="#/opening-day/${odYear}">Full card &rarr;</a></h3>${openingDayCard(db, odYear, { compact: true })}${db.rsGames.filter(g => N(g.year) === odYear && g.game_type !== 'opening_day').map(g => `<p class="od-extra"><b>${esc(GAME_TYPE[g.game_type] || g.game_type)}:</b> ${g.result} ${esc(g.cle_runs)}-${esc(g.opp_runs)} ${g.home_away === 'away' ? 'at' : 'vs'} ${esc(g.opponent)}. ${esc(g.note.replace(/^Home opener; /, ''))}</p>`).join('')}</div>` : '';
   const trYear = Math.max(0, ...Object.values(db.trades).map(rs => N(rs[0].year)));
   const trades = trYear ? `<div class="card"><h3>${trYear} Trades <a class="more" href="#/transactions">All transactions &rarr;</a></h3><div class="trade-grid">${tradesForYear(db, trYear).reverse().map(t => tradeCard(db, t)).join('')}</div></div>` : '';
 

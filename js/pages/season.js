@@ -3,7 +3,7 @@ import { N, batTotals, pitTotals, roundIdx } from '../data.js';
 import { esc, table, section, pageNav, empty, rate, dec, int, money, ordinal, team, logo, isCLE, playerLink, headshot, nameLink, mediaCard, roundShort, pennant } from '../ui.js';
 import { yearCol, playerCol, posCol, BAT_STATS, PIT_STATS, batTotalRow, pitTotalRow } from '../cols.js';
 import { bracket } from './postseason.js';
-import { openingDayCard, tradeCard, tradesForYear } from './moves.js';
+import { openingDayCard, tradeCard, tradesForYear, milestoneGames } from './moves.js';
 
 export function seasonsIndex(db) {
   const rows = db.seasons.filter(y => db.summaryByYear[y] || db.T.staff.some(s => N(s.year) === y)).map(y => {
@@ -46,7 +46,7 @@ export function seasonPage(db, yearStr) {
     <div class="ph-main">
       <div class="crumbs"><a href="#/seasons">Seasons</a>${prev ? ` · <a href="#/season/${prev}">&larr; ${prev}</a>` : ''}${next ? ` · <a href="#/season/${next}">${next} &rarr;</a>` : ''}</div>
       <h1>${year} ${esc(CONFIG.franchiseCity)} ${esc(CONFIG.franchise)}</h1>
-      ${s ? `<p class="meta"><strong>Record:</strong> ${rec}, ${ordinal(s.division_finish)} in ${esc(s.division)}</p>` : '<p class="meta">Season not played yet.</p>'}
+      ${s ? `<p class="meta"><strong>Record:</strong> ${rec}, ${ordinal(s.division_finish)} in ${esc(s.division)}</p>` : `<p class="meta">${db.openingDay[y] || db.rsGames.some(g => N(g.year) === year) ? 'Season in progress.' : 'Season not played yet.'}</p>`}
       ${mgr ? `<p class="meta"><strong>Manager:</strong> ${esc(mgr)}</p>` : ''}
       ${s ? `<p class="meta"><strong>Postseason:</strong> ${champ ? '<strong class="champ">Won World Series</strong>' : esc(s.playoff_result === 'missed' ? 'Did not qualify' : s.playoff_result)}</p>` : ''}
       ${s?.payroll ? `<p class="meta"><strong>Payroll:</strong> ${money(s.payroll)}</p>` : ''}
@@ -72,6 +72,7 @@ export function seasonPage(db, yearStr) {
   add('highlights', 'Highlights', hl.length ? `<div class="hl-grid">${hl.map(h => mediaCard(db, h)).join('')}</div>` : '');
 
   add('opening-day', 'Opening Day', openingDayCard(db, year));
+  add('milestones', 'Milestone Games', milestoneGames(db, year));
   const tr = tradesForYear(db, year);
   add('transactions', 'Trades', tr.length ? `<div class="trade-grid">${tr.map(t => tradeCard(db, t)).join('')}</div>` : '');
 

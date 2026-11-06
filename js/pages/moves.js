@@ -1,7 +1,10 @@
 // Opening Day lineup cards and trades.
 import { CONFIG } from '../config.js';
 import { N } from '../data.js';
-import { esc, section, empty, money, logo, team, playerLink, headshot, fmtDate } from '../ui.js';
+import { esc, section, empty, money, logo, team, playerLink, headshot, fmtDate, table } from '../ui.js';
+
+export const GAME_TYPE = { opening_day: 'Opening Day', home_opener: 'Home Opener' };
+const score = g => (g && g.result ? `${g.result} ${g.cle_runs}-${g.opp_runs}` : '');
 
 const PHASE = { spring_training: 'Spring training', offseason: 'Offseason', regular_season: 'Regular season', postseason: 'Postseason', trade_deadline: 'Trade deadline' };
 
@@ -13,6 +16,7 @@ export function openingDayCard(db, year, { compact = false } = {}) {
   const sp = rows.find(r => r.role === 'starting_pitcher');
   const opp = rows.find(r => r.role === 'opp_starting_pitcher');
   const r0 = rows[0];
+  const game = db.rsGames.find(g => N(g.year) === N(year) && g.game_type === 'opening_day');
   const away = r0.home_away === 'away';
   const us = CONFIG.franchise;
   const matchup = away ? `${esc(us)} at ${esc(r0.opponent)}` : `${esc(r0.opponent)} at ${esc(us)}`;
@@ -33,6 +37,7 @@ export function openingDayCard(db, year, { compact = false } = {}) {
     <div class="od-head">
       <div class="od-logos">${logo(us, 46, 'team-cap-on-dark')}<span>${away ? '@' : 'vs'}</span>${logo(r0.opponent, 46, 'team-cap-on-dark')}</div>
       <div class="od-title"><span class="od-eyebrow">Opening Day ${esc(year)}</span><b>${matchup}</b><small>${esc(fmtDate(r0.date))}</small></div>
+      ${game?.result ? `<div class="od-score ${game.result === 'W' ? 'win' : 'loss'}"><b>${esc(game.result)}</b><span>${esc(game.cle_runs)}-${esc(game.opp_runs)}</span></div>` : ''}
     </div>
     <div class="od-sub"><span>#</span><span></span><span>Player</span><span>Pos</span><span>B</span>${avgOvr ? '<span>OVR</span>' : ''}</div>
     <ol class="od-list">${lineup.map(line).join('')}</ol>
@@ -41,12 +46,24 @@ export function openingDayCard(db, year, { compact = false } = {}) {
   </div>`;
 }
 
+// Opening Day, home opener and other notable regular-season games for a year.
+export function milestoneGames(db, year) {
+  const rows = db.rsGames.filter(g => N(g.year) === N(year));
+  return rows.length ? table([
+    { k: 'game_type', label: 'Game', cls: 'left', fmt: g => `<b>${esc(GAME_TYPE[g.game_type] || g.game_type)}</b>` },
+    { k: 'date', label: 'Date', fmt: g => esc(fmtDate(g.date)) },
+    { k: 'opponent', label: 'Opponent', cls: 'left', fmt: g => `${g.home_away === 'away' ? '@ ' : 'vs '}${team(g.opponent, 16)}` },
+    { k: 'result', label: 'Result', fmt: g => `<span class="${g.result === 'W' ? 'pos' : 'neg'}"><b>${esc(score(g))}</b></span>` },
+    { k: 'note', label: 'Notes', cls: 'left', fmt: g => esc(g.note) },
+  ], rows) : '';
+}
+
 export function openingDayPage(db, yearStr) {
   const years = Object.keys(db.openingDay).map(Number).sort((a, b) => b - a);
   if (!years.length) return `<h1>Opening Day</h1>${empty('No Opening Day lineups recorded yet.')}`;
   const year = N(yearStr) || years[0];
   const tabs = years.map(y => `<a class="${y === year ? 'on' : ''}" href="#/opening-day/${y}">${y}</a>`).join('');
-  return `<h1>Opening Day Lineups</h1><nav class="year-tabs">${tabs}</nav>${openingDayCard(db, year) || empty('No lineup for that year.')}
+  return `<h1>Opening Day Lineups</h1><nav class="year-tabs">${tabs}</nav>${openingDayCard(db, year) || empty('No lineup for that year.')}${milestoneGames(db, year) ? section('milestones', 'Milestone Games', milestoneGames(db, year)) : ''}
     <p><a href="#/season/${year}">${year} season page &rarr;</a></p>`;
 }
 
@@ -83,9 +100,11 @@ export function transactionsPage(db) {
 export function playerMoves(db, id) {
   const tx = db.txByPlayer[id] || [];
   const od = db.odByPlayer[id] || [];
+  const gm = db.rsGamesByPlayer[id] || [];
   const items = [
     ...tx.map(r => ({ y: N(r.year), html: `${r.direction === 'acquired' ? 'Acquired from' : 'Traded to'} ${team(r.partner_team, 16)} <small class="muted">(${esc(r.when_note || PHASE[r.phase] || '')})</small> · <a href="#/transactions#${esc(r.transaction_id)}">Trade details</a>` })),
     ...od.filter(r => r.role !== 'opp_starting_pitcher').map(r => ({ y: N(r.year), html: `Opening Day: ${r.role === 'starting_pitcher' ? 'starting pitcher' : `batted ${esc(r.batting_order)}${['', 'st', 'nd', 'rd'][N(r.batting_order)] || 'th'}, ${esc(r.position)}`} vs ${team(r.opponent, 16)} · <a href="#/opening-day/${esc(r.year)}">Lineup card</a>` })),
+    ...gm.map(g => ({ y: N(g.year), html: `${esc(GAME_TYPE[g.game_type] || g.game_type)}: ${esc(g.note)} <small class="muted">(${g.home_away === 'away' ? '@' : 'vs'} ${esc(g.opponent)}, ${esc(score(g))})</small>` })),
   ].sort((a, b) => a.y - b.y);
   return items.length ? `<ul class="moves">${items.map(i => `<li><b>${i.y}</b><span>${i.html}</span></li>`).join('')}</ul>` : '';
 }

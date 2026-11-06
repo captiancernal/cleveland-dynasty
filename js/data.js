@@ -84,7 +84,7 @@ function buildDB(raw, loadedAt) {
   for (const t of Object.values(T)) for (const r of t) if (r.player_id) ensure(r.player_id, r.player);
 
   const years = new Set();
-  for (const k of ['season_summary', 'standings', 'batting', 'pitching', 'staff', 'awards', 'all_stars', 'postseason', 'hall_of_fame', 'draft', 'highlights', 'season_wrapup', 'transactions', 'opening_day']) {
+  for (const k of ['season_summary', 'standings', 'batting', 'pitching', 'staff', 'awards', 'all_stars', 'postseason', 'hall_of_fame', 'draft', 'highlights', 'season_wrapup', 'transactions', 'opening_day', 'regular_season_games']) {
     for (const r of T[k]) if (N(r.year)) years.add(N(r.year));
   }
   const seasons = [...years].sort((a, b) => a - b);
@@ -116,7 +116,9 @@ function buildDB(raw, loadedAt) {
     openingDay: by('opening_day', 'year'),
     odByPlayer: by('opening_day', 'player_id'),
   };
-  for (const r of T.opening_day) r.date = normDate(r.date);
+  for (const r of [...T.opening_day, ...T.regular_season_games]) r.date = normDate(r.date);
+  db.rsGames = T.regular_season_games;
+  db.rsGamesByPlayer = groupBy(T.regular_season_games.filter(r => r.player_id), r => r.player_id);
   db.games = [...T.postseason_games].sort((a, b) => a.date.localeCompare(b.date));
   db.gameKey = g => `${g.year}/${encodeURIComponent(g.round)}/${g.game}`;
   db.championYears = T.season_summary.filter(r => /world series winner/i.test(r.playoff_result)).map(r => N(r.year));

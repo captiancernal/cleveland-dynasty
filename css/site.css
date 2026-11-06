@@ -437,3 +437,9 @@ a.bm:hover { text-decoration: none; border-color: var(--red); }
   .od-sp.them { flex-direction: row; text-align: left; }
   .od-vs { display: none; }
 }
+.od-score { margin-left: auto; text-align: center; padding: 6px 12px; border-radius: 6px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .25); line-height: 1; }
+.od-score b { display: block; font: 700 13px var(--display); letter-spacing: .1em; color: var(--gold); }
+.od-score.loss b { color: #ff9aa8; }
+.od-score span { font: 700 24px var(--display); }
+.od-card.compact .od-score span { font-size: 18px; }
+.od-extra { margin: 10px 0 0; font-size: 14px; }
