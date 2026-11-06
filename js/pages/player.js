@@ -57,6 +57,9 @@ export function playerPage(db, id) {
   const sightings = [
     ...bat.map(r => [r.year, r.team]), ...pit.map(r => [r.year, r.team]), ...as.map(r => [r.year, r.team]),
     ...awards.map(r => [r.year, r.team]), ...nn.map(r => [r.year, r.team]), ...dr.map(r => [r.year, r.team]), ...ll.map(r => [r.year, r.team]),
+    // Opening Day, then trades (in order) so the latest move decides the current team within a year.
+    ...(db.odByPlayer[id] || []).map(r => [r.year, r.team]),
+    ...[...(db.txByPlayer[id] || [])].sort((a, b) => a.transaction_id.localeCompare(b.transaction_id)).map(r => [r.year, r.direction === 'acquired' ? CONFIG.franchise : r.partner_team]),
   ].filter(x => x[1]).sort((a, b) => N(a[0]) - N(b[0]));
   const lastTeam = sightings.length ? sightings[sightings.length - 1][1] : '';
 
