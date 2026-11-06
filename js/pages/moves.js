@@ -3,7 +3,7 @@ import { CONFIG } from '../config.js';
 import { N } from '../data.js';
 import { esc, section, empty, money, logo, team, playerLink, headshot, fmtDate, table } from '../ui.js';
 
-export const GAME_TYPE = { opening_day: 'Opening Day', home_opener: 'Home Opener' };
+export const GAME_TYPE = { opening_day: 'Opening Day', home_opener: 'Home Opener', player_home_debut: 'Home Debut' };
 const score = g => (g && g.result ? `${g.result} ${g.cle_runs}-${g.opp_runs}` : '');
 
 const PHASE = { spring_training: 'Spring training', offseason: 'Offseason', regular_season: 'Regular season', postseason: 'Postseason', trade_deadline: 'Trade deadline' };
@@ -53,7 +53,7 @@ export function milestoneGames(db, year) {
     { k: 'game_type', label: 'Game', cls: 'left', fmt: g => `<b>${esc(GAME_TYPE[g.game_type] || g.game_type)}</b>` },
     { k: 'date', label: 'Date', fmt: g => esc(fmtDate(g.date)) },
     { k: 'opponent', label: 'Opponent', cls: 'left', fmt: g => `${g.home_away === 'away' ? '@ ' : 'vs '}${team(g.opponent, 16)}` },
-    { k: 'result', label: 'Result', fmt: g => `<span class="${g.result === 'W' ? 'pos' : 'neg'}"><b>${esc(score(g))}</b></span>` },
+    { k: 'result', label: 'Result', fmt: g => (g.result ? `<span class="${g.result === 'W' ? 'pos' : 'neg'}"><b>${esc(score(g))}</b></span>` : '<span class="muted">—</span>') },
     { k: 'note', label: 'Notes', cls: 'left', fmt: g => esc(g.note) },
   ], rows) : '';
 }
@@ -104,7 +104,7 @@ export function playerMoves(db, id) {
   const items = [
     ...tx.map(r => ({ y: N(r.year), html: `${r.direction === 'acquired' ? 'Acquired from' : 'Traded to'} ${team(r.partner_team, 16)} <small class="muted">(${esc(r.when_note || PHASE[r.phase] || '')})</small> · <a href="#/transactions#${esc(r.transaction_id)}">Trade details</a>` })),
     ...od.filter(r => r.role !== 'opp_starting_pitcher').map(r => ({ y: N(r.year), html: `Opening Day: ${r.role === 'starting_pitcher' ? 'starting pitcher' : `batted ${esc(r.batting_order)}${['', 'st', 'nd', 'rd'][N(r.batting_order)] || 'th'}, ${esc(r.position)}`} vs ${team(r.opponent, 16)} · <a href="#/opening-day/${esc(r.year)}">Lineup card</a>` })),
-    ...gm.map(g => ({ y: N(g.year), html: `${esc(GAME_TYPE[g.game_type] || g.game_type)}: ${esc(g.note)} <small class="muted">(${g.home_away === 'away' ? '@' : 'vs'} ${esc(g.opponent)}, ${esc(score(g))})</small>` })),
+    ...gm.map(g => ({ y: N(g.year), html: `${esc(GAME_TYPE[g.game_type] || g.game_type)}: ${esc(g.note)} <small class="muted">(${[`${g.home_away === 'away' ? '@' : 'vs'} ${esc(g.opponent)}`, esc(score(g))].filter(Boolean).join(', ')})</small>` })),
   ].sort((a, b) => a.y - b.y);
   return items.length ? `<ul class="moves">${items.map(i => `<li><b>${i.y}</b><span>${i.html}</span></li>`).join('')}</ul>` : '';
 }
