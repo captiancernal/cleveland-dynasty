@@ -59,6 +59,7 @@ export function leagueLeaders(db, yearStr) {
 // ---------- awards ----------
 export function awardsPage(db) {
   const awards = ['MVP', 'Cy Young', 'Rookie of the Year', 'Reliever of the Year'];
+  const asgMvp = db.T.awards.filter(r => r.award === 'All-Star Game MVP').sort((a, b) => N(b.year) - N(a.year));
   const years = [...new Set(db.T.awards.map(r => N(r.year)))].sort((a, b) => b - a);
   const winners = (award, lg, y) => db.T.awards.filter(r => r.award === award && r.league === lg && N(r.year) === y).sort((a, b) => N(a.finish) - N(b.finish));
   const body = awards.map(a => {
@@ -71,11 +72,17 @@ export function awardsPage(db) {
     ], rows, { cls: 'awards-tbl' }));
   }).join('');
   const ws = db.T.postseason.filter(r => r.series_mvp_id).sort((a, b) => N(b.year) - N(a.year));
-  return `<h1>Awards History</h1>${pageNav(awards.map(a => [a.replace(/\s/g, '-').toLowerCase(), a]).concat([['wsmvp', 'WS MVP']]))}${body}
+  return `<h1>Awards History</h1>${pageNav(awards.map(a => [a.replace(/\s/g, '-').toLowerCase(), a]).concat([['wsmvp', 'WS MVP'], ['asgmvp', 'All-Star MVP']]))}${body}
     ${section('wsmvp', 'World Series MVP', table([
       { k: 'year', label: 'Year', sort: r => N(r.year) }, { k: 'series_mvp', label: 'Player', cls: 'left', fmt: r => `<span class="pcell">${headshot(db, r.series_mvp_id, 'hs-xs')}${playerLink(db, r.series_mvp_id, r.series_mvp)}</span>` },
       { k: 'winner', label: 'Champion', cls: 'left', fmt: r => team(r.winner) },
-    ], ws))}`;
+    ], ws))}
+    ${section('asgmvp', 'All-Star Game MVP', table([
+      { k: 'year', label: 'Year', fmt: r => `<a href="#/allstars/${r.year}">${esc(r.year)}</a>`, sort: r => N(r.year) },
+      { k: 'league', label: 'Lg' },
+      { k: 'player', label: 'Player', cls: 'left', fmt: r => `<span class="pcell">${headshot(db, r.player_id, 'hs-xs')}${playerLink(db, r.player_id, r.player)}</span>` },
+      { k: 'team', label: 'Team', cls: 'left', fmt: r => (r.team ? team(r.team, 16) : '') },
+    ], asgMvp, { rowCls: r => (isCLE(r.team) ? 'hl-row' : '') }))}`;
 }
 
 // ---------- all-stars ----------
@@ -97,7 +104,13 @@ export function allStarsPage(db, yearStr) {
   // Count selections per CLE player across all years
   const cle = {}; for (const r of db.T.all_stars) if (isCLE(r.team)) (cle[r.player_id] ||= new Set()).add(r.year);
   const cleRows = Object.entries(cle).map(([id, ys]) => ({ id, n: ys.size, years: [...ys].sort().join(', ') })).sort((a, b) => b.n - a.n);
-  return `<h1>${year || ''} All-Star Game</h1>
+  const game = db.rsGames.find(g => N(g.year) === year && g.game_type === 'all_star_game');
+  const mvp = db.T.awards.find(r => N(r.year) === year && r.award === 'All-Star Game MVP');
+  const hl = Object.values(db.highlights).find(h => N(h.year) === year && h.phase === 'all_star');
+  const gameBox = game ? `<div class="asg-result"><div class="asg-score"><span>AL</span><b>${game.result === 'W' ? esc(game.cle_runs) : esc(game.opp_runs)}</b><i>–</i><b>${game.result === 'W' ? esc(game.opp_runs) : esc(game.cle_runs)}</b><span>NL</span></div>
+    ${mvp ? `<div class="asg-mvp">${headshot(db, mvp.player_id, 'hs-sm')}<span><small>All-Star Game MVP</small>${playerLink(db, mvp.player_id, mvp.player)} ${mvp.team ? logo(mvp.team, 16) : ''}</span></div>` : ''}
+    <p>${esc(game.note)}${hl ? ` <a href="#/highlight/${hl.highlight_id}">Photos &rarr;</a>` : ''}</p></div>` : '';
+  return `<h1>${year || ''} All-Star Game</h1>${gameBox}
     <div class="year-pills">${years.map(y => `<a class="pill-link ${y === year ? 'on' : ''}" href="#/allstars/${y}">${y}</a>`).join('')}</div>
     <div class="two-col">${section('al', 'American League', roster('AL'))}${section('nl', 'National League', roster('NL'))}</div>
     ${section('cle', `${CONFIG.franchise} All-Stars (all years)`, table([

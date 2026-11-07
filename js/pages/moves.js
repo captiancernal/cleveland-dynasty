@@ -3,7 +3,7 @@ import { CONFIG } from '../config.js';
 import { N } from '../data.js';
 import { esc, section, empty, money, logo, team, playerLink, headshot, fmtDate, table } from '../ui.js';
 
-export const GAME_TYPE = { opening_day: 'Opening Day', home_opener: 'Home Opener', player_home_debut: 'Home Debut' };
+export const GAME_TYPE = { opening_day: 'Opening Day', home_opener: 'Home Opener', player_home_debut: 'Home Debut', all_star_game: 'All-Star Game' };
 const score = g => (g && g.result ? `${g.result} ${g.cle_runs}-${g.opp_runs}` : '');
 
 const PHASE = { spring_training: 'Spring training', offseason: 'Offseason', regular_season: 'Regular season', postseason: 'Postseason', trade_deadline: 'Trade deadline' };
