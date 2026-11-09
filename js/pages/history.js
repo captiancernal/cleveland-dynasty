@@ -58,12 +58,12 @@ export function leagueLeaders(db, yearStr) {
 
 // ---------- awards ----------
 export function awardsPage(db) {
-  const awards = ['MVP', 'Cy Young', 'Rookie of the Year', 'Reliever of the Year'];
+  const awards = ['MVP', 'Cy Young', 'Rookie of the Year', 'Reliever of the Year', 'Batting Title'];
   const asgMvp = db.T.awards.filter(r => r.award === 'All-Star Game MVP').sort((a, b) => N(b.year) - N(a.year));
   const years = [...new Set(db.T.awards.map(r => N(r.year)))].sort((a, b) => b - a);
   const winners = (award, lg, y) => db.T.awards.filter(r => r.award === award && r.league === lg && N(r.year) === y).sort((a, b) => N(a.finish) - N(b.finish));
   const body = awards.map(a => {
-    const rows = years.map(y => ({ year: String(y), al: winners(a, 'AL', y), nl: winners(a, 'NL', y) }));
+    const rows = years.map(y => ({ year: String(y), al: winners(a, 'AL', y), nl: winners(a, 'NL', y) })).filter(r => r.al.length || r.nl.length);
     const cell = list => list.map((r, i) => `<div class="aw-line ${i ? 'aw-other' : 'aw-win'} ${isCLE(r.team) ? 'hl-row' : ''}">${i ? `<small>${ordinal(r.finish)}</small> ` : headshot(db, r.player_id, 'hs-xs')}${playerLink(db, r.player_id, r.player)} <small>${logo(r.team, 13)}${esc(TEAMS[r.team]?.abbr || r.team)}</small></div>`).join('');
     return section(a.replace(/\s/g, '-').toLowerCase(), a, table([
       { k: 'year', label: 'Year', fmt: r => `<a href="#/season/${r.year}">${r.year}</a>`, sort: r => N(r.year) },

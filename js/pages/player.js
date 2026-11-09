@@ -120,7 +120,9 @@ export function playerPage(db, id) {
     yearCol, { k: 'award', label: 'Award', cls: 'left', fmt: r => `${esc(r.league)} ${esc(r.award)}` },
     { k: 'finish', label: 'Finish', fmt: r => (N(r.finish) === 1 ? '<b class="gold-txt">Winner</b>' : ordinal(r.finish)), sort: r => N(r.finish) },
     { k: 'team', label: 'Team', cls: 'left', fmt: r => team(r.team, 16) },
-    { k: 'line', label: 'Stat line', cls: 'left', fmt: r => esc(r.award === 'All-Star Game MVP' ? `In the game: ${r.wins === '1' ? 'W' : 'ND'}, ${r.strikeouts} SO, ${r.era} ERA` : r.era ? `${r.wins}-${r.losses}, ${r.era} ERA, ${r.strikeouts} SO${r.saves ? `, ${r.saves} SV` : ''}` : `${r.avg} BA, ${r.hr} HR, ${r.rbi} RBI`) },
+    { k: 'line', label: 'Stat line', cls: 'left', fmt: r => esc(r.award === 'All-Star Game MVP' ? `In the game: ${r.wins === '1' ? 'W' : 'ND'}, ${r.strikeouts} SO, ${r.era} ERA` : r.era
+      ? [r.wins !== '' && r.wins != null ? `${r.wins}-${r.losses}` : '', r.saves ? `${r.saves} SV` : '', `${r.era} ERA`, r.strikeouts ? `${r.strikeouts} SO` : ''].filter(Boolean).join(', ')
+      : [r.avg ? `${r.avg} BA` : '', r.hr ? `${r.hr} HR` : '', r.rbi ? `${r.rbi} RBI` : ''].filter(Boolean).join(', ')) },
   ], awards));
   if (as.length) add('allstar', 'All-Star Selections', table([
     yearCol, { k: 'league', label: 'Lg' }, { k: 'role', label: 'Role', cls: 'left', fmt: r => esc({ lineup: `Starter${r.slot ? ` (batting ${r.slot})` : ''}`, starting_pitcher: 'Starting pitcher', pitcher: 'Pitcher', bench: 'Reserve' }[r.role] || r.role) },
